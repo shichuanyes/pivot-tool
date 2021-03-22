@@ -41,16 +41,17 @@ class Dictionary:
             result += str(self.x_b[i]) + "=" + str(self.b[i])
 
             for j in range(np.shape(self.a)[1]):
-                result += "+" if self.a[i, j] > 0 else ""
-                result += str(self.a[i, j]) if self.a[i, j] != 1 else ""
+                result += "+" if self.a[i, j] > 0 else "-" if self.a[i, j] < 0 else ""
+                result += str(abs(self.a[i, j])) if abs(self.a[i, j]) != 1 else ""
                 result += str(self.x_n[j]) if self.a[i, j] != 0 else ""
 
             result += "\n"
         result += "--------------------\n"
         result += "z=" + str(self.z)
         for j in range(np.shape(self.c)[0]):
-            result += "+" if self.c[j] > 0 else ""
-            result += str(self.c[j]) + str(self.x_n[j]) if self.c[j] != 0 else ""
+            result += "+" if self.c[j] > 0 else "-" if self.c[j] < 0 else ""
+            result += str(abs(self.c[j])) if abs(self.c[j]) != 1 else ""
+            result += str(self.x_n[j]) if self.c[j] != 0 else ""
 
         return result
 
