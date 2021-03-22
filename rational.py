@@ -67,6 +67,9 @@ class Rational:
     def inverse(self):
         return Rational(self.denominator, self.numerator)
 
+    def inverse_(self):
+        self.numerator, self.denominator = self.denominator, self.numerator
+
     def reduce(self):
         gcd = math.gcd(self.numerator, self.denominator)
         return Rational(self.numerator // gcd, self.denominator // gcd)
@@ -78,3 +81,8 @@ class Rational:
 
     def value(self):
         return self.numerator * 1.0 / self.denominator
+
+
+def from_str(str_):
+    p = [int(t) for t in str_.split("/")]
+    return Rational(p[0], p[1] if len(p) > 1 else 1)
