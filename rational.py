@@ -2,7 +2,7 @@ import math
 
 
 class Rational:
-    def __init__(self, numerator, denominator=1):
+    def __init__(self, numerator: int, denominator: int = 1):
         if denominator == 0:
             raise ZeroDivisionError()
         elif denominator > 0:
@@ -15,6 +15,9 @@ class Rational:
     def __str__(self):
         return "{}".format(self.numerator) if self.denominator == 1 or self.numerator == 0 \
             else "{}/{}".format(self.numerator, self.denominator)
+
+    def __repr__(self):
+        return "{}/{}".format(self.numerator, self.denominator)
 
     def __add__(self, other):
         if isinstance(other, int):
@@ -83,6 +86,6 @@ class Rational:
         return self.numerator * 1.0 / self.denominator
 
 
-def from_str(str_):
+def from_str(str_: str):
     p = [int(t) for t in str_.split("/")]
     return Rational(p[0], p[1] if len(p) > 1 else 1)

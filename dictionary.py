@@ -1,83 +1,65 @@
 import numpy as np
 
 
+def _to_string(a, b, c, z, x_b, x_n):
+    str_ = _to_latex(a, b, c, z, x_b, x_n) \
+        .replace(" ", "") \
+        .replace("&", "") \
+        .replace("\\\\", "") \
+        .replace("\\hline", "--------------------")
+    return "".join(map(lambda x: x + "\n", str_.split("\n")[1:-1]))
+
+
+def _to_latex(a, b, c, z, x_b, x_n):
+    result = "\\begin{array}{" + "r" * (3 + np.shape(c)[0] * 2) + "}\n"
+
+    for i in range(np.shape(a)[0]):
+        result += "    " + str(x_b[i]) + " & = & " + str(b[i])
+
+        for j in range(np.shape(a)[1]):
+            result += " & + & " if a[i, j] > 0 else " & - & " if a[i, j] < 0 else " &  & "
+            result += str(abs(a[i, j])) if abs(a[i, j]) != 1 and a[i, j] != 0 else ""
+            result += str(x_n[j]) if a[i, j] != 0 else ""
+
+        result += " \\\\\n"
+
+    result += "    \\hline\n"
+
+    result += "    z & = & " + str(z)
+    for j in range(np.shape(c)[0]):
+        result += " & + & " if c[j] > 0 else " & - & " if c[j] < 0 else " &  & "
+        result += str(abs(c[j])) if abs(c[j]) != 1 and c[j] != 0 else ""
+        result += str(x_n[j]) if c[j] != 0 else ""
+
+    result += "\n\\end{array}"
+    return result
+
+
 class Dictionary:
-    def __init__(self, a, b, c, z, x_b, x_n):
-        self.a = a
-        self.b = b
-        self.c = c
-        self.z = z
+    def __init__(self, d, x_b, x_n):
+        self.d = d
         self.x_b = x_b
         self.x_n = x_n
 
     def pivot_(self, entering, leaving):
-        if entering < 0 or entering >= np.shape(self.a)[1]:
-            raise ValueError("Entering variable out of range")
-        if leaving < 0 or leaving >= np.shape(self.a)[0]:
-            raise ValueError("Leaving variable out of range")
+        if not np.isin(entering, self.x_n):
+            raise ValueError("Invalid entering variable")
+        if not np.isin(leaving, self.x_b):
+            raise ValueError("Invalid leaving variable")
 
-        self.x_b[leaving], self.x_n[entering] = self.x_n[entering], self.x_b[leaving]
+        e_index = np.where(self.x_n == entering)[0][0]
+        l_index = np.where(self.x_b == leaving)[0][0]
 
-        coefficient = self.a[leaving, entering]
-        self.a[leaving, :] /= -coefficient
-        self.a[leaving, entering] /= -coefficient
-        self.b[leaving] /= -coefficient
+        self.x_b[l_index], self.x_n[e_index] = self.x_n[e_index], self.x_b[l_index]
 
-        coefficient = np.array([self.a[:, entering]]).transpose()
-        coefficient[leaving, :] = 0
-        self.a += coefficient * self.a[leaving, :]
-        self.a[:, entering] -= coefficient[:, 0]
-        self.b += coefficient[:, 0] * self.b[leaving]
+        coefficient = self.d[l_index, e_index]
+        self.d[l_index, :] /= -coefficient
+        self.d[l_index, e_index] /= -coefficient
 
-        coefficient = self.c[entering]
-        self.c += [coefficient * _ for _ in self.a[leaving, :]]
-        self.c[entering] -= coefficient
+        coefficient = np.array([self.d[:, e_index]]).transpose()
+        coefficient[l_index, :] = 0
+        self.d += coefficient * self.d[l_index, :]
+        self.d[:, e_index] -= coefficient[:, 0]
 
-        self.z += coefficient * self.b[leaving]
-
-    def to_string(self):
-        result = ""
-        for i in range(np.shape(self.a)[0]):
-            result += str(self.x_b[i]) + "=" + str(self.b[i])
-
-            for j in range(np.shape(self.a)[1]):
-                result += "+" if self.a[i, j] > 0 else "-" if self.a[i, j] < 0 else ""
-                result += str(abs(self.a[i, j])) if abs(self.a[i, j]) != 1 and self.a[i, j] != 0 else ""
-                result += str(self.x_n[j]) if self.a[i, j] != 0 else ""
-
-            result += "\n"
-        result += "--------------------\n"
-        result += "z=" + str(self.z)
-        for j in range(np.shape(self.c)[0]):
-            result += "+" if self.c[j] > 0 else "-" if self.c[j] < 0 else ""
-            result += str(abs(self.c[j])) if abs(self.c[j]) != 1 and self.c[j] != 0 else ""
-            result += str(self.x_n[j]) if self.c[j] != 0 else ""
-
-        return result
-
-    def to_latex(self):
-        result = "\\begin{array}{" + "r" * (3 + np.shape(self.c)[0] * 2) + "}\n"
-
-        for i in range(np.shape(self.a)[0]):
-            result += "    " + str(self.x_b[i]) + " & = & " + str(self.b[i])
-
-            for j in range(np.shape(self.a)[1]):
-                result += " & + & " if self.a[i, j] > 0 else " & - & " if self.a[i, j] < 0 else " &  & "
-                result += str(abs(self.a[i, j])) if abs(self.a[i, j]) != 1 and self.a[i, j] != 0 else ""
-                result += str(self.x_n[j]) if self.a[i, j] != 0 else ""
-
-            result += " \\\\\n"
-
-        result += "    \\hline\n"
-
-        result += "    z & = & " + str(self.z)
-        for j in range(np.shape(self.c)[0]):
-            result += " & + & " if self.c[j] > 0 else " & - & " if self.c[j] < 0 else " &  & "
-            result += str(abs(self.c[j])) if abs(self.c[j]) != 1 and self.c[j] != 0 else ""
-            result += str(self.x_n[j]) if self.c[j] != 0 else ""
-
-        result += "\n\\end{array}"
-        return result
-
-    def is_optimal(self):
-        return all(self.b <= 0)
+    def __str__(self):
+        return _to_string(self.d[:-1, :-1], self.d[:-1, -1], self.d[-1, :-1], self.d[-1, -1], self.x_b, self.x_n)
