@@ -53,8 +53,8 @@ class Dictionary:
         self.x_b[l_index], self.x_n[e_index] = self.x_n[e_index], self.x_b[l_index]
 
         coefficient = self.d[l_index, e_index]
+        self.d[l_index, e_index] = 1
         self.d[l_index, :] /= -coefficient
-        self.d[l_index, e_index] /= -coefficient
 
         coefficient = np.array([self.d[:, e_index]]).transpose()
         coefficient[l_index, :] = 0
